@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/vishal2159/nodeJsJenkinsEc2Demo.git', credentialsId: 'github-credentials'
+                git branch: 'main', url: 'https://github.com/vishal2159/nodeJsJenkinsEc2Demo.git', credentialsId: 'vishal2159'
             }
         }
         stage('Install Dependencies') {
