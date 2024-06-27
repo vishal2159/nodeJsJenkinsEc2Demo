@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = "992382592515.dkr.ecr.us-east-1.amazonaws.com/nodejs:latest"
         REGISTRY_CREDENTIALS = 'dockerhub-credentials-id'
-        CONTAINER_NAME = "nodejs-on-ec2-${env.BUILD_NUMBER}"
+        CONTAINER_NAME = "nodejs-onec2-${env.BUILD_NUMBER}"
     }
 
     stages {
