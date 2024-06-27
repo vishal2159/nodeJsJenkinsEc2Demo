@@ -1,10 +1,10 @@
 pipeline {
     agent any
 
-    
     environment {
         DOCKER_IMAGE = "992382592515.dkr.ecr.us-east-1.amazonaws.com/nodejs:latest"
         REGISTRY_CREDENTIALS = 'dockerhub-credentials-id'
+        CONTAINER_NAME = "nodejs-on-ec2-${env.BUILD_NUMBER}"
     }
 
     stages {
@@ -41,7 +41,7 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    docker.withRegistry('', 'dockerhub-credentials-id') {
+                    docker.withRegistry('', REGISTRY_CREDENTIALS) {
                         sh 'docker push $DOCKER_IMAGE'
                     }
                 }
@@ -51,7 +51,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    sh 'docker run -d -p 80:80 $DOCKER_IMAGE'
+                    sh 'docker run -d -p 80:80 --name $CONTAINER_NAME $DOCKER_IMAGE'
                 }
             }
         }
