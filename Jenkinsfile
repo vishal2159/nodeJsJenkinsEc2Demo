@@ -7,6 +7,8 @@ pipeline {
         CONTAINER_NAME = "nodejs-onec2-${env.BUILD_NUMBER}"
     }
 
+    echo 'CONTAINER_NAME', CONTAINER_NAME
+
     stages {
         stage('Clone Repository') {
             steps {
