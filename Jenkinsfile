@@ -1,6 +1,5 @@
 pipeline {
     agent any
-
     
     environment {
         DOCKER_IMAGE = "992382592515.dkr.ecr.us-east-1.amazonaws.com/nodejs:latest"
