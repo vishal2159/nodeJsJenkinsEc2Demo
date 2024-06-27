@@ -1,63 +1,69 @@
 pipeline {
     agent any
+
     environment {
-        DOCKER_IMAGE = "your-dockerhub-username/my-node-app"
+        DOCKER_IMAGE = "992382592515.dkr.ecr.us-east-1.amazonaws.com/nodejs:latest"
+        REGISTRY_CREDENTIALS = 'dockerhub-credentials-id'
     }
+
     stages {
         stage('Clone Repository') {
             steps {
-                git branch: 'main', url: 'https://github.com/vishal2159/nodeJsJenkinsEc2Demo.git', credentialsId: 'vishal2159'
+                git 'https://github.com/vishal2159/nodeJsJenkinsEc2Demo.git'
             }
         }
+
         stage('Install Dependencies') {
-            agent {
-                docker {
-                    image 'node:14'
-                }
-            }
             steps {
-                sh 'npm install'
+                script {
+                    def nodeHome = tool name: 'NodeJS', type: 'NodeJSInstallation'
+                    env.PATH = "${nodeHome}/bin:${env.PATH}"
+                    sh 'npm install'
+                }
             }
         }
+
         stage('Run Tests') {
-            agent {
-                docker {
-                    image 'node:14'
-                }
-            }
             steps {
                 sh 'npm test'
             }
         }
+
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${env.DOCKER_IMAGE}:${env.BUILD_NUMBER}")
+                    sh 'docker build -t $DOCKER_IMAGE .'
                 }
             }
         }
+
         stage('Push Docker Image') {
             steps {
                 script {
-                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials-id') {
-                        docker.image("${env.DOCKER_IMAGE}:${env.BUILD_NUMBER}").push()
+                    docker.withRegistry('', 'dockerhub-credentials-id') {
+                        sh 'docker push $DOCKER_IMAGE'
                     }
                 }
             }
         }
-        stage('Deploy to EC2') {
+
+        stage('Deploy') {
             steps {
-                sshagent(['ec2-ssh-credentials-id']) {
-                    sh """
-                    ssh -o StrictHostKeyChecking=no ec2-user@your-ec2-public-dns << EOF
-                    docker pull ${env.DOCKER_IMAGE}:${env.BUILD_NUMBER}
-                    docker stop my-node-app || true
-                    docker rm my-node-app || true
-                    docker run -d --name my-node-app -p 80:3000 ${env.DOCKER_IMAGE}:${env.BUILD_NUMBER}
-                    EOF
-                    """
+                script {
+                    sh 'docker run -d -p 80:80 $DOCKER_IMAGE'
                 }
             }
+        }
+    }
+
+    post {
+        success {
+            echo 'Build and deployment successful!'
+        }
+        failure {
+            mail to: 'vishal2159@gmail.com',
+                 subject: "Jenkins Job '${env.JOB_NAME}' (${env.BUILD_NUMBER}) Failed",
+                 body: "Job '${env.JOB_NAME}' (${env.BUILD_NUMBER}) failed. Check Jenkins for more details."
         }
     }
 }
